@@ -653,9 +653,8 @@ function CompleteProfile() {
               </Badge>
             </div>
           </motion.footer>
-          </Card>
-        </motion.div>
-      </div>
+        </Card>
+      </motion.div>
     </div>
   );
 }

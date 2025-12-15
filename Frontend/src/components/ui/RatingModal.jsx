@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, User, MessageSquare, X, Frown, Meh, Smile, SmileBeam } from "lucide-react";
+import { Star, User, MessageSquare, X, Frown, Meh, Smile } from "lucide-react";
 import { cn } from "../../utils/cn";
 import axios from "axios";
 import toast from "react-hot-toast";
