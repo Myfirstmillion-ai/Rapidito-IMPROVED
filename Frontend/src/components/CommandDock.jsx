@@ -10,9 +10,9 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { NotificationContext } from "../contexts/NotificationContext";
+import { useNotifications } from "../contexts/NotificationContext";
 
 /**
  * 🏆 TESLA MATTE PREMIUM - CommandDock Component
@@ -87,7 +87,7 @@ function CommandDock({
   const navigate = useNavigate();
   
   // Obtener datos de notificaciones del contexto
-  const { unreadCount, toggleNotificationCenter } = useContext(NotificationContext);
+  const { unreadCount, toggleNotificationCenter } = useNotifications();
 
   // Check for reduced motion
   const prefersReducedMotion = typeof window !== 'undefined' 
@@ -168,6 +168,7 @@ function CommandDock({
                       onClick={() => handleQuickAction(action.id)}
                       delay={index * 0.05}
                       prefersReducedMotion={prefersReducedMotion}
+                      unreadCount={unreadCount}
                     />
                   ))}
                 </div>
@@ -370,9 +371,8 @@ function NavButton({
 /**
  * QuickActionButton - Button in expanded menu
  */
-function QuickActionButton({ action, onClick, delay, prefersReducedMotion }) {
+function QuickActionButton({ action, onClick, delay, prefersReducedMotion, unreadCount }) {
   const Icon = action.icon;
-  const { unreadCount } = useContext(NotificationContext);
   
   // Determinar si debe mostrar un badge y cuántos elementos
   const showBadge = action.id === 'notifications' && unreadCount > 0;
