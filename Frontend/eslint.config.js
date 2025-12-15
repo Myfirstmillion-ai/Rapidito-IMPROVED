@@ -28,11 +28,27 @@ export default [
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
+      
+      // Reglas personalizadas
       'react/jsx-no-target-blank': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+      
+      // 🔥 REGLAS CRÍTICAS PARA PREVENIR ERRORES
+      'react-hooks/rules-of-hooks': 'error', // Asegura que los hooks se usen correctamente
+      'react-hooks/exhaustive-deps': 'warn', // Advierte sobre dependencias faltantes
+      'no-undef': 'error', // Detecta variables no definidas (como useMemo sin importar)
+      'no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+      
+      // Reglas adicionales de calidad
+      'react/prop-types': 'off', // Desactivar si no usas PropTypes
+      'react/display-name': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
 ]
