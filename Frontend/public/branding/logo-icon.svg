@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rapi-dito Icon Logo - Square Format -->
+  
+  <!-- Circular Background -->
+  <circle cx="256" cy="256" r="246" fill="#000000" />
+  <circle cx="256" cy="256" r="236" fill="#0A0A0A" />
+  
+  <!-- "R" with Arrow Icon - Centered -->
+  <g transform="translate(128, 106) scale(1.3)">
+    <!-- "R" part -->
+    <path d="M0,0 L0,140 L30,140 L30,85 L70,140 L110,140 L60,78
+             C85,70 100,50 100,25 C100,10 95,5 90,0 Z
+             M30,25 L30,60 L70,60 C80,60 80,25 70,25 Z" 
+          fill="#30D158" />
+    
+    <!-- Arrow part integrated into R -->
+    <path d="M85,40 L120,78 L85,116 L105,116 L140,78 L105,40 Z" 
+          fill="#30D158" />
+  </g>
+  
+  <!-- Subtle Motion Effect -->
+  <path d="M406,256 C406,341.5 337.5,410 252,410 C166.5,410 98,341.5 98,256" 
+        stroke="#30D15840" 
+        stroke-width="8"
+        stroke-linecap="round"
+        fill="none" />
+</svg>

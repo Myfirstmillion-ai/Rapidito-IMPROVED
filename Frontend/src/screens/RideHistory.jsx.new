@@ -1,0 +1,539 @@
+import { useState, useMemo } from "react";
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Car,
+  Bike,
+  Star,
+  Search,
+  Filter,
+  TrendingUp,
+  Activity,
+  DollarSign,
+  Clock,
+  ChevronDown
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { colors, shadows, glassEffect, borderRadius } from "../styles/designSystem";
+import Button from "../components/common/Button";
+import Card from "../components/common/Card";
+import Badge from "../components/common/Badge";
+
+// Variantes de animación para iOS Deluxe
+const animationVariants = {
+  fadeInDown: {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 300 } }
+  },
+  fadeInUp: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 300 } }
+  },
+  staggerChildren: {
+    animate: {
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  },
+  itemFadeIn: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 300 } }
+  }
+};
+
+function RideHistory() {
+  const navigation = useNavigate();
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  const [user] = useState(userData.data);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("date"); // date, price
+  const [expandedRide, setExpandedRide] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Classification and sorting logic
+  function classifyAndSortRides(rides) {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const isToday = (date) =>
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate();
+
+    const isYesterday = (date) =>
+      date.getFullYear() === yesterday.getFullYear() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getDate() === yesterday.getDate();
+
+    const sortByDate = (rides) =>
+      rides.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const sortByPrice = (rides) =>
+      rides.sort((a, b) => (b.fare || 0) - (a.fare || 0));
+
+    const todayRides = [];
+    const yesterdayRides = [];
+    const earlierRides = [];
+
+    rides.forEach((ride) => {
+      const createdDate = new Date(ride.createdAt);
+      if (isToday(createdDate)) {
+        todayRides.push(ride);
+      } else if (isYesterday(createdDate)) {
+        yesterdayRides.push(ride);
+      } else {
+        earlierRides.push(ride);
+      }
+    });
+
+    const sortFn = sortBy === "price" ? sortByPrice : sortByDate;
+
+    return {
+      today: sortFn(todayRides),
+      yesterday: sortFn(yesterdayRides),
+      earlier: sortFn(earlierRides),
+    };
+  }
+
+  // Filter rides by search query
+  const filteredRides = useMemo(() => {
+    if (!user.rides) return { today: [], yesterday: [], earlier: [] };
+    
+    const filtered = user.rides.filter((ride) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        ride.pickup?.toLowerCase().includes(query) ||
+        ride.destination?.toLowerCase().includes(query)
+      );
+    });
+
+    return classifyAndSortRides(filtered);
+  }, [user.rides, searchQuery, sortBy]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = user.rides?.length || 0;
+    const totalSpent = user.rides?.reduce((sum, ride) => sum + (ride.fare || 0), 0) || 0;
+    const avgFare = total > 0 ? totalSpent / total : 0;
+
+    return { total, totalSpent, avgFare };
+  }, [user.rides]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#101010] to-[#080808] overflow-y-auto">
+      {/* Header - iOS Deluxe */}
+      <motion.div
+        variants={animationVariants.fadeInDown}
+        initial="initial"
+        animate="animate"
+        className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/10"
+      >
+        <div className="px-6 py-4">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="glass"
+              size="icon"
+              icon={<ArrowLeft size={18} />}
+              onClick={() => navigation(-1)}
+              aria-label="Volver"
+            />
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-white">
+                Historial
+              </h1>
+              <p className="text-sm text-white/60">
+                {stats.total} viajes realizados
+              </p>
+            </div>
+          </div>
+
+          {/* Search Bar - iOS Deluxe */}
+          <div className="relative mb-4">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+              size={18}
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por origen o destino..."
+              className="w-full h-12 pl-12 pr-4 bg-white/10 backdrop-blur-sm border border-white/20 focus:border-white/30 rounded-xl text-white outline-none transition-colors text-sm placeholder:text-white/40"
+            />
+          </div>
+
+          {/* Stats Cards - iOS Deluxe */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <Card
+              variant="glass"
+              className="backdrop-blur-sm p-3 border border-white/20 flex flex-col"
+            >
+              <Activity size={16} className="text-white/70 mb-1" />
+              <p className="text-xs text-white/70 font-medium">Total</p>
+              <p className="text-lg font-bold text-white">{stats.total}</p>
+            </Card>
+            
+            <Card
+              variant="glass"
+              className="backdrop-blur-sm p-3 border border-white/20 flex flex-col"
+            >
+              <DollarSign size={16} className="text-white/70 mb-1" />
+              <p className="text-xs text-white/70 font-medium">Gastado</p>
+              <p className="text-lg font-bold text-white">
+                ${Math.round(stats.totalSpent / 1000)}K
+              </p>
+            </Card>
+            
+            <Card
+              variant="glass"
+              className="backdrop-blur-sm p-3 border border-white/20 flex flex-col"
+            >
+              <TrendingUp size={16} className="text-white/70 mb-1" />
+              <p className="text-xs text-white/70 font-medium">Promedio</p>
+              <p className="text-lg font-bold text-white">
+                ${Math.round(stats.avgFare / 1000)}K
+              </p>
+            </Card>
+          </div>
+
+          {/* Filter Toggle - iOS Deluxe */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="glass"
+              size="small"
+              title="Ordenar"
+              icon={<Filter size={14} />}
+              onClick={() => setShowFilters(!showFilters)}
+            />
+            
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex gap-2"
+                >
+                  <Button
+                    variant={sortBy === "date" ? "primary" : "glass"}
+                    size="small"
+                    title="Fecha"
+                    onClick={() => setSortBy("date")}
+                  />
+                  <Button
+                    variant={sortBy === "price" ? "primary" : "glass"}
+                    size="small"
+                    title="Precio"
+                    onClick={() => setSortBy("price")}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Rides List */}
+      <div className="px-6 pb-20 pt-6">
+        <motion.div 
+          variants={animationVariants.staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
+          {/* Today Section */}
+          <RideSection
+            title="Hoy"
+            rides={filteredRides.today}
+            expandedRide={expandedRide}
+            setExpandedRide={setExpandedRide}
+          />
+
+          {/* Yesterday Section */}
+          <RideSection
+            title="Ayer"
+            rides={filteredRides.yesterday}
+            expandedRide={expandedRide}
+            setExpandedRide={setExpandedRide}
+          />
+
+          {/* Earlier Section */}
+          <RideSection
+            title="Anteriores"
+            rides={filteredRides.earlier}
+            expandedRide={expandedRide}
+            setExpandedRide={setExpandedRide}
+          />
+
+          {/* Empty State - iOS Deluxe */}
+          {filteredRides.today.length === 0 &&
+            filteredRides.yesterday.length === 0 &&
+            filteredRides.earlier.length === 0 && (
+              <motion.div
+                variants={animationVariants.fadeInUp}
+                className="text-center py-16"
+              >
+                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                  <Calendar size={32} className="text-white/40" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-1">
+                  No hay viajes
+                </h3>
+                <p className="text-sm text-white/60">
+                  {searchQuery
+                    ? "No se encontraron resultados para tu búsqueda"
+                    : "Aún no has realizado ningún viaje"}
+                </p>
+              </motion.div>
+            )}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// Ride Section Component - iOS Deluxe
+const RideSection = ({ title, rides, expandedRide, setExpandedRide }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  if (rides.length === 0) return null;
+
+  return (
+    <motion.div 
+      variants={animationVariants.itemFadeIn}
+      className="mb-8"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full mb-4"
+      >
+        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-white/60 font-medium">
+            {rides.length} {rides.length === 1 ? "viaje" : "viajes"}
+          </span>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-white/60"
+          >
+            <ChevronDown size={18} />
+          </motion.div>
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="space-y-4"
+          >
+            {rides.map((ride) => (
+              <RideCard
+                key={ride._id}
+                ride={ride}
+                isExpanded={expandedRide === ride._id}
+                onToggle={() =>
+                  setExpandedRide(expandedRide === ride._id ? null : ride._id)
+                }
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+// Premium Ride Card Component - iOS Deluxe
+export const RideCard = ({ ride, isExpanded, onToggle }) => {
+  function formatDate(inputDate) {
+    const date = new Date(inputDate);
+    const months = [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month}, ${year}`;
+  }
+
+  function formatTime(inputDate) {
+    const date = new Date(inputDate);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    return `${hours}:${formattedMinutes} ${period}`;
+  }
+
+  const VehicleIcon = ride.vehicleType === "bike" ? Bike : Car;
+  const hasRating = ride.rating && ride.rating > 0;
+
+  return (
+    <Card
+      variant="glass"
+      className="overflow-hidden backdrop-blur-md border border-white/20"
+    >
+      <motion.div
+        whileTap={{ scale: 0.98 }}
+        onClick={onToggle}
+        className="p-4 cursor-pointer"
+      >
+        {/* Header Section - iOS Deluxe */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                <VehicleIcon size={16} className="text-white" />
+              </div>
+              <span className="text-sm font-semibold text-white capitalize">
+                {ride.vehicleType === "car" ? "Carro" : "Moto"}
+              </span>
+              {ride.status && (
+                <Badge
+                  variant={ride.status === "completed" ? "success" : "error"}
+                  text={ride.status === "completed" ? "Completado" : "Cancelado"}
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-xs text-white/60">
+              <span className="flex items-center gap-1">
+                <Calendar size={12} />
+                {formatDate(ride.createdAt)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={12} />
+                {formatTime(ride.createdAt)}
+              </span>
+            </div>
+          </div>
+
+          <div className="text-right">
+            <p className="text-xl font-bold text-white">
+              ${ride.fare?.toLocaleString("es-CO") || 0}
+            </p>
+            {ride.distance && (
+              <p className="text-xs text-white/60">
+                {(Number(ride.distance.toFixed(2)) / 1000).toFixed(1)} km
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Route Section - iOS Deluxe */}
+        <div className="relative pl-6">
+          {/* Route Line */}
+          <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-gradient-to-b from-[#10B981] to-white/30"></div>
+          
+          {/* Pickup Dot */}
+          <div className="absolute left-0 top-2 -translate-x-[3px] w-2 h-2 rounded-full bg-[#10B981]"></div>
+          
+          {/* Destination Dot */}
+          <div className="absolute left-0 bottom-2 -translate-x-[3px] w-2 h-2 rounded-full bg-white/50"></div>
+
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-white line-clamp-1">
+                {ride.pickup?.split(", ")[0] || "Origen"}
+              </p>
+              <p className="text-xs text-white/60 line-clamp-1">
+                {ride.pickup?.split(", ").slice(1).join(", ") || ""}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white line-clamp-1">
+                {ride.destination?.split(", ")[0] || "Destino"}
+              </p>
+              <p className="text-xs text-white/60 line-clamp-1">
+                {ride.destination?.split(", ").slice(1).join(", ") || ""}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Expanded Details - iOS Deluxe */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="mt-4 pt-4 border-t border-white/10 space-y-3"
+            >
+              {/* Rating */}
+              {hasRating && (
+                <Card
+                  variant="glass"
+                  className="p-3 border border-amber-500/20 bg-amber-500/5"
+                >
+                  <div className="flex items-center gap-2">
+                    <Star size={16} className="fill-amber-400 text-amber-400" />
+                    <span className="text-sm font-semibold text-white">
+                      Calificación: {ride.rating}/5
+                    </span>
+                    {ride.ratingComment && (
+                      <span className="text-xs text-white/70 ml-auto truncate">
+                        "{ride.ratingComment}"
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Driver Info */}
+              {ride.status === "completed" && (ride.captain || ride.driver) && (
+                <Card variant="glass" className="p-3 backdrop-blur-sm">
+                  <p className="text-xs text-white/60 mb-1">Conductor</p>
+                  <p className="text-sm font-semibold text-white truncate">
+                    {ride.captain?.fullname?.firstname || 
+                     ride.captain?.firstname || 
+                     ride.driver?.fullname?.firstname || 
+                     ride.driver?.firstname ||
+                     ride.captain?.name ||
+                     ride.driver?.name}
+                  </p>
+                  {(() => {
+                    const vehicle = ride.captain?.vehicle || ride.driver?.vehicle;
+                    if (vehicle && (vehicle.make || vehicle.model || vehicle.color)) {
+                      return (
+                        <p className="text-xs text-white/60 mt-1 truncate">
+                          {vehicle.make || ""} {vehicle.model || ""} 
+                          {vehicle.color && ` - ${vehicle.color}`}
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
+                </Card>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </Card>
+  );
+};
+
+export default RideHistory;

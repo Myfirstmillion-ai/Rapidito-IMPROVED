@@ -1,0 +1,110 @@
+{
+  "name": "Rapi-dito",
+  "short_name": "Rapi-dito",
+  "description": "Ride-hailing premium app",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#000000",
+  "background_color": "#0A0A0A",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1280x720.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Rapi-dito Home Screen"
+    },
+    {
+      "src": "/screenshots/mobile-750x1334.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Rapi-dito Mobile View"
+    },
+    {
+      "src": "/screenshots/ride-tracking-750x1334.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ride Tracking"
+    }
+  ],
+  "categories": ["transportation", "travel", "navigation"],
+  "lang": "es",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "shortcuts": [
+    {
+      "name": "Nuevo Viaje",
+      "short_name": "Nuevo",
+      "description": "Solicitar un nuevo viaje",
+      "url": "/new-ride",
+      "icons": [{ "src": "/icons/shortcut-new-ride.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Viajes Recientes",
+      "short_name": "Recientes",
+      "description": "Ver viajes recientes",
+      "url": "/history",
+      "icons": [{ "src": "/icons/shortcut-history.png", "sizes": "96x96" }]
+    }
+  ],
+  "scope": "/",
+  "id": "rapi-dito-app",
+  "edge_side_panel": {
+    "preferred_width": 480
+  }
+}
