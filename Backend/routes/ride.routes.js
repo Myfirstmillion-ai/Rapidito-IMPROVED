@@ -32,6 +32,56 @@ router.post(
   rideController.acceptRide
 );
 
-// Other existing routes...
+// Start ride (captain verifies OTP to begin ride)
+router.post(
+  '/start/:rideId',
+  authMiddleware.authCaptain,
+  param('rideId').isMongoId().withMessage('Valid ride ID is required'),
+  body('otp').notEmpty().withMessage('OTP is required'),
+  rideController.startRide
+);
+
+// Complete ride
+router.post(
+  '/complete/:rideId',
+  authMiddleware.authCaptain,
+  param('rideId').isMongoId().withMessage('Valid ride ID is required'),
+  rideController.completeRide
+);
+
+// Cancel ride - can be done by either user or captain
+router.post(
+  '/cancel/:rideId',
+  [authMiddleware.authUser, authMiddleware.authCaptain],
+  param('rideId').isMongoId().withMessage('Valid ride ID is required'),
+  body('cancellationReason').optional(),
+  rideController.cancelRide
+);
+
+// Get ride history
+router.get(
+  '/history',
+  [authMiddleware.authUser, authMiddleware.authCaptain],
+  rideController.getRideHistory
+);
+
+// Rate a completed ride
+router.post(
+  '/rate/:rideId',
+  [authMiddleware.authUser, authMiddleware.authCaptain],
+  param('rideId').isMongoId().withMessage('Valid ride ID is required'),
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  body('comment').optional(),
+  rideController.rateRide
+);
+
+// Add message to ride chat
+router.post(
+  '/message/:rideId',
+  [authMiddleware.authUser, authMiddleware.authCaptain],
+  param('rideId').isMongoId().withMessage('Valid ride ID is required'),
+  body('message').notEmpty().withMessage('Message is required'),
+  rideController.addMessage
+);
 
 module.exports = router;
