@@ -1,51 +1,20 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Facebook, Instagram, Twitter, ArrowRight } from "lucide-react";
-import { colors, borderRadius, shadows, glassEffect } from "../styles/designSystem";
+import { ArrowRight, Car, User, Shield, Clock, MapPin } from "lucide-react";
 import Button from "../components/common/Button";
-import Card from "../components/common/Card";
-import Badge from "../components/common/Badge";
 
 /**
- * GetStarted - iOS Deluxe Floating Island Landing
- * Premium dark mode design with glassmorphism
- * Animated gradient background with floating islands
+ * GetStarted - Premium Uber-style Landing Screen
+ * Clean, modern design with bold typography and smooth animations
  */
 function GetStarted() {
   const navigate = useNavigate();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  
-  // Check for reduced motion preference
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }, []);
+  const [mounted, setMounted] = useState(false);
 
-  // Animation variants with iOS spring physics
-  const fadeInUp = {
-    initial: prefersReducedMotion ? {} : { opacity: 0, y: 40 },
-    animate: prefersReducedMotion ? {} : { opacity: 1, y: 0 },
-    transition: { type: "spring", damping: 30, stiffness: 300, mass: 0.8 }
-  };
-
-  const cardReveal = {
-    initial: prefersReducedMotion ? {} : { opacity: 0, y: 100 },
-    animate: prefersReducedMotion ? {} : { opacity: 1, y: 0 },
-    transition: { type: "spring", damping: 25, stiffness: 250, mass: 0.8, delay: 0.3 }
-  };
-  
-  const scaleIn = {
-    initial: prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 },
-    animate: prefersReducedMotion ? {} : { opacity: 1, scale: 1 },
-    transition: { type: "spring", damping: 35, stiffness: 350, mass: 0.6, delay: 0.6 }
-  };
-  
   useEffect(() => {
-    // Ensure scroll is never blocked
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
-    
+    setMounted(true);
+
     // Check for existing user session
     const userData = localStorage.getItem("userData");
     if (userData) {
@@ -60,187 +29,349 @@ function GetStarted() {
         // Invalid data, continue to landing page
       }
     }
-
-    // Preload hero background image
-    const img = new Image();
-    img.src = '/IMG_3639.jpeg';
-    img.onload = () => setImageLoaded(true);
-    
-    return () => {
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-    };
   }, [navigate]);
 
+  const features = [
+    { icon: Shield, text: "Viajes seguros" },
+    { icon: Clock, text: "Llegamos en minutos" },
+    { icon: MapPin, text: "Cobertura total" },
+  ];
+
   return (
-    <div className={`relative h-screen w-full overflow-hidden bg-[${colors.primary}]`}>
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#101010] to-[#080808] opacity-90" />
-      
-      {/* Subtle Mesh Gradient Overlay */}
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: imageLoaded ? 0.7 : 0 }}
-        transition={{ duration: 1 }}
-        className="absolute inset-0 bg-[url('/2.webp')] bg-cover bg-center opacity-30 mix-blend-overlay"
-        aria-hidden="true"
-      />
-      
-      {/* City Background Image with Blur Effect */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: imageLoaded ? 0.5 : 0 }}
-        transition={{ duration: 1.5 }}
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url('/IMG_3639.jpeg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(10px) brightness(0.3)',
-        }}
-        aria-hidden="true"
-      />
-      
-      {/* Content Wrapper */}
-      <div className="relative z-10 h-full flex flex-col justify-between px-6 py-12 md:px-8 md:py-16 lg:px-12">
-        {/* Header Logo - Floating Island */}
+    <div style={styles.container}>
+      {/* Background gradient */}
+      <div style={styles.backgroundGradient} />
+
+      {/* Main content */}
+      <div style={styles.content}>
+        {/* Header */}
         <motion.header
-          {...fadeInUp}
-          className="flex justify-center md:justify-start"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : -20 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={styles.header}
         >
-          <Card 
-            variant="glass" 
-            borderRadius="xlarge"
-            className="inline-flex px-6 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-          >
-            {/* RAPIDITO Logo - Premium styling */}
-            <div 
-              className="font-bold tracking-[0.2em] uppercase text-white"
-              role="img"
-              aria-label="RAPIDITO"
-            >
-              <span className="text-2xl md:text-3xl">RAPIDITO</span>
-            </div>
-          </Card>
+          <div style={styles.logo}>
+            <span style={styles.logoText}>Rapidito</span>
+          </div>
         </motion.header>
 
-        {/* Hero Section - Centered Content */}
-        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto text-center">
-          {/* Hero Text Floating Island */}
+        {/* Hero Section */}
+        <div style={styles.heroSection}>
           <motion.div
-            {...fadeInUp}
-            className="mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 30 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Card 
-              variant="glass" 
-              borderRadius="xlarge"
-              className="px-8 py-6 md:py-8 md:px-12 shadow-[${shadows.level4}]"
-            >
-              {/* Tagline */}
-              <Badge 
-                variant="primary" 
-                size="small"
-                className="mb-6"
-              >
-                PREMIUM EXPERIENCE
-              </Badge>
-              
-              {/* Main heading with premium styling */}
-              <h1 className={`text-balance text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-[${colors.textPrimary}] mb-4`}>
-                Una nueva forma<br />de viajar
-              </h1>
-              
-              {/* Subheading with premium styling */}
-              <p className={`text-balance text-base md:text-lg leading-relaxed text-[${colors.textSecondary}]`}>
-                Seguridad, confort y estilo premium en<br />San Antonio del Táchira.
-              </p>
-            </Card>
+            <h1 style={styles.heroTitle}>
+              Tu viaje,{" "}
+              <span style={styles.heroHighlight}>simplificado</span>
+            </h1>
+            <p style={styles.heroSubtitle}>
+              Solicita un viaje en segundos. Llega a donde necesites de forma
+              segura y confiable.
+            </p>
           </motion.div>
-          
-          {/* CTA Buttons - Floating Island */}
+
+          {/* Features */}
           <motion.div
-            {...scaleIn}
-            className="w-full max-w-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 20 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={styles.features}
           >
-            <Card
-              variant="floating"
-              borderRadius="xlarge"
-              className="px-8 py-6 flex flex-col gap-4"
-            >
-              {/* Google OAuth Button */}
-              <Button
-                variant="glass"
-                size="large"
-                icon={<img src="/screens/google-logo.png" alt="Google" className="w-5 h-5" />}
-                title="Continuar con Google"
-                onClick={() => navigate("/oauth/google")}
-                fullWidth
-              />
-              
-              {/* Divider with text */}
-              <div className="flex items-center gap-4 my-2">
-                <div className={`h-px flex-1 bg-[${colors.border}]`}></div>
-                <span className={`text-[${colors.textSecondary}] text-sm`}>o continuar con email</span>
-                <div className={`h-px flex-1 bg-[${colors.border}]`}></div>
+            {features.map((feature, index) => (
+              <div key={index} style={styles.featureItem}>
+                <feature.icon size={18} color="#000" strokeWidth={2.5} />
+                <span style={styles.featureText}>{feature.text}</span>
               </div>
-              
-              {/* Primary CTA Button */}
-              <Button
-                variant="primary"
-                size="large"
-                icon={<ArrowRight size={20} />}
-                title="Iniciar sesión"
-                onClick={() => navigate("/login")}
-                fullWidth
-              />
-              
-              {/* Secondary CTA */}
-              <Button
-                variant="secondary"
-                size="large"
-                title="Conducir con Rapidito"
-                onClick={() => navigate("/captain/login")}
-                fullWidth
-              />
-            </Card>
+            ))}
           </motion.div>
         </div>
-        
-        {/* Footer with Legal Links */}
+
+        {/* Action Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 40 }}
+          transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={styles.actionSection}
+        >
+          {/* User type selection */}
+          <div style={styles.userTypeSection}>
+            <p style={styles.selectLabel}>Selecciona tu perfil</p>
+
+            {/* Rider option */}
+            <button
+              style={styles.userTypeCard}
+              onClick={() => navigate("/login")}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#F9FAFB';
+                e.currentTarget.style.transform = 'scale(1.01)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <div style={styles.userTypeIcon}>
+                <User size={24} color="#000" strokeWidth={2} />
+              </div>
+              <div style={styles.userTypeContent}>
+                <h3 style={styles.userTypeTitle}>Pasajero</h3>
+                <p style={styles.userTypeDesc}>Solicita un viaje ahora</p>
+              </div>
+              <ArrowRight size={20} color="#9CA3AF" />
+            </button>
+
+            {/* Driver option */}
+            <button
+              style={styles.userTypeCard}
+              onClick={() => navigate("/captain/login")}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#F9FAFB';
+                e.currentTarget.style.transform = 'scale(1.01)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <div style={styles.userTypeIcon}>
+                <Car size={24} color="#000" strokeWidth={2} />
+              </div>
+              <div style={styles.userTypeContent}>
+                <h3 style={styles.userTypeTitle}>Conductor</h3>
+                <p style={styles.userTypeDesc}>Genera ingresos manejando</p>
+              </div>
+              <ArrowRight size={20} color="#9CA3AF" />
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div style={styles.divider}>
+            <div style={styles.dividerLine} />
+            <span style={styles.dividerText}>o</span>
+            <div style={styles.dividerLine} />
+          </div>
+
+          {/* Google Sign In */}
+          <Button
+            variant="secondary"
+            size="large"
+            icon={
+              <img
+                src="/screens/google-logo.png"
+                alt="Google"
+                style={{ width: 20, height: 20 }}
+              />
+            }
+            title="Continuar con Google"
+            onClick={() => {
+              window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google?userType=user`;
+            }}
+            fullWidth
+          />
+        </motion.div>
+
+        {/* Footer */}
         <motion.footer
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="mt-auto pt-6 flex flex-col items-center"
+          animate={{ opacity: mounted ? 1 : 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          style={styles.footer}
         >
-          {/* Legal Links in Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <Badge variant="ghost">
-              <Link to="/privacy" className="px-1">
-                Privacidad
-              </Link>
-            </Badge>
-            <Badge variant="ghost">
-              <Link to="/terms" className="px-1">
-                Términos
-              </Link>
-            </Badge>
-            <Badge variant="ghost">
-              <Link to="/help" className="px-1">
-                Ayuda
-              </Link>
-            </Badge>
+          <div style={styles.footerLinks}>
+            <Link to="/terms" style={styles.footerLink}>Términos</Link>
+            <span style={styles.footerDot}>·</span>
+            <Link to="/privacy" style={styles.footerLink}>Privacidad</Link>
+            <span style={styles.footerDot}>·</span>
+            <Link to="/help" style={styles.footerLink}>Ayuda</Link>
           </div>
-          
-          {/* Signature */}
-          <p className={`text-center text-sm text-[${colors.textSecondary}]`}>
-            Hecho con <span className="text-red-500">♥️</span> y{' '}
-            <span className="text-amber-600">☕️</span> por Camilo González
+          <p style={styles.footerCopyright}>
+            © 2024 Rapidito. San Antonio del Táchira.
           </p>
         </motion.footer>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    background: 'linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%)',
+    zIndex: 0,
+  },
+  content: {
+    position: 'relative',
+    zIndex: 1,
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '24px',
+    maxWidth: '100%',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: '32px',
+  },
+  logo: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: '-0.5px',
+  },
+  heroSection: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingBottom: '24px',
+  },
+  heroTitle: {
+    fontSize: '40px',
+    fontWeight: '700',
+    color: '#000000',
+    lineHeight: 1.1,
+    marginBottom: '16px',
+    letterSpacing: '-1px',
+  },
+  heroHighlight: {
+    color: '#16A34A',
+  },
+  heroSubtitle: {
+    fontSize: '18px',
+    color: '#6B7280',
+    lineHeight: 1.5,
+    marginBottom: '32px',
+    maxWidth: '320px',
+  },
+  features: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    backgroundColor: '#F3F4F6',
+    borderRadius: '100px',
+  },
+  featureText: {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#374151',
+  },
+  actionSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    paddingBottom: '24px',
+  },
+  userTypeSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  selectLabel: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: '4px',
+  },
+  userTypeCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    padding: '16px',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    borderRadius: '16px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    textAlign: 'left',
+    width: '100%',
+  },
+  userTypeIcon: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    backgroundColor: '#F3F4F6',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  userTypeContent: {
+    flex: 1,
+  },
+  userTypeTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: '2px',
+  },
+  userTypeDesc: {
+    fontSize: '14px',
+    color: '#6B7280',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    margin: '8px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    fontSize: '14px',
+    color: '#9CA3AF',
+  },
+  footer: {
+    textAlign: 'center',
+    paddingTop: '16px',
+  },
+  footerLinks: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '12px',
+  },
+  footerLink: {
+    fontSize: '14px',
+    color: '#6B7280',
+    textDecoration: 'none',
+  },
+  footerDot: {
+    color: '#D1D5DB',
+  },
+  footerCopyright: {
+    fontSize: '12px',
+    color: '#9CA3AF',
+  },
+};
 
 export default GetStarted;

@@ -1,84 +1,90 @@
 import { cn } from "../../utils/cn";
-import { colors, borderRadius, shadows, glassEffect } from "../../styles/designSystem";
 
 /**
- * iOS Deluxe Floating Island Card Component
- * 
+ * Premium Card Component - Uber-style Design
+ *
  * Features:
- * - Glassmorphism background with backdrop blur
- * - Floating elevation with premium shadow system
- * - Consistent border radius from design system
- * - Hover animations with subtle lift
- * - Multiple variants for different depth levels
- * 
- * @param {Object} props
- * @param {React.ReactNode} props.children - Card content
- * @param {string} props.className - Additional CSS classes
- * @param {boolean} props.padding - Apply default padding (default: true)
- * @param {boolean} props.hoverable - Enable hover effects (default: false)
- * @param {string} props.variant - Card variant: 'default', 'elevated', 'glass', 'floating'
- * @param {string} props.borderRadius - Border radius size: 'small', 'medium', 'large', 'xlarge'
- * @param {boolean} props.animate - Enable entrance animation
+ * - Clean, modern design
+ * - Multiple variants (default, elevated, glass, floating)
+ * - Hover animations
+ * - Consistent border radius
  */
-function Card({ 
-  children, 
-  className, 
-  padding = true, 
+function Card({
+  children,
+  className,
+  padding = true,
   hoverable = false,
   variant = "default",
   borderRadius = "medium",
   animate = false
 }) {
-  // Map border radius values from design system
+  // Border radius values
   const radiusValues = {
-    small: borderRadius.small, // 8px
-    medium: borderRadius.medium, // 16px
-    large: borderRadius.large, // 24px
-    xlarge: borderRadius.xlarge, // 32px
+    small: '8px',
+    medium: '16px',
+    large: '24px',
+    xlarge: '32px',
   };
-  
-  // Define variant styles based on iOS Deluxe design system
-  const variantClasses = {
-    // Standard card with minimal elevation
-    default: `bg-[${colors.card}] shadow-[${shadows.level1}] border border-[${colors.border}]`,
-    
-    // Elevated card with more prominent shadow
-    elevated: `bg-[${colors.card}] shadow-[${shadows.level2}] border border-[${colors.border}]`,
-    
-    // Glassmorphism card with backdrop blur
-    glass: `bg-[${glassEffect.background}] backdrop-filter backdrop-blur-[20px] backdrop-saturate-[180%] border border-[${colors.border}] shadow-[${shadows.level2}]`,
-    
-    // Floating island with maximum elevation
-    floating: `bg-[${glassEffect.background}] backdrop-filter backdrop-blur-[20px] backdrop-saturate-[180%] border border-[${colors.border}] shadow-[${shadows.level4}]`,
-    
-    // Interactive card with hover effects built-in
-    interactive: `bg-[${colors.card}] shadow-[${shadows.level1}] border border-[${colors.border}] hover:shadow-[${shadows.level3}] cursor-pointer`,
+
+  // Variant styles with inline styles (fixes Tailwind dynamic class issue)
+  const variantStyles = {
+    default: {
+      backgroundColor: '#FFFFFF',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      border: '1px solid #E5E7EB',
+    },
+    elevated: {
+      backgroundColor: '#FFFFFF',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      border: '1px solid #E5E7EB',
+    },
+    glass: {
+      backgroundColor: 'rgba(255,255,255,0.9)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+      border: '1px solid rgba(255,255,255,0.3)',
+    },
+    floating: {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      border: '1px solid rgba(255,255,255,0.4)',
+    },
+    dark: {
+      backgroundColor: '#1A1A1A',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+      border: '1px solid rgba(255,255,255,0.1)',
+    },
+    darkGlass: {
+      backgroundColor: 'rgba(26,26,26,0.9)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      border: '1px solid rgba(255,255,255,0.1)',
+    },
+  };
+
+  const currentVariant = variantStyles[variant] || variantStyles.default;
+  const currentRadius = radiusValues[borderRadius] || radiusValues.medium;
+
+  const cardStyle = {
+    ...currentVariant,
+    borderRadius: currentRadius,
+    padding: padding ? '20px' : '0',
+    transition: 'all 0.2s ease',
+    overflow: 'hidden',
   };
 
   return (
     <div
       className={cn(
-        // Base styles with no background (specified in variants)
-        `rounded-[${radiusValues[borderRadius]}] overflow-hidden`,
-        
-        // Premium transitions with spring physics
-        "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        
-        // Consistent padding from design system (20px)
-        padding && "p-5", // 20px padding
-        
-        // Apply hover effects if enabled
-        hoverable && `hover:translate-y-[-2px] hover:shadow-[${shadows.level3}]`,
-        
-        // Animation classes for entrance effects
+        hoverable && "hover:-translate-y-1 cursor-pointer",
         animate && "animate-fadeInUp",
-        
-        // Apply variant-specific classes
-        variantClasses[variant],
-        
-        // User-provided classes
         className
       )}
+      style={cardStyle}
     >
       {children}
     </div>

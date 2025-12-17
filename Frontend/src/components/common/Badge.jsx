@@ -1,78 +1,74 @@
 import { cn } from "../../utils/cn";
-import { colors, borderRadius } from "../../styles/designSystem";
 
 /**
- * iOS Deluxe Badge Variants with Premium Styling
+ * Premium Badge Component - Uber-style Design
  */
-const badgeVariants = {
-  // Neutral badge - subtle gray
-  default: `bg-white/10 text-[${colors.textPrimary}]`,
-  
-  // Primary badge - iOS accent blue
-  primary: `bg-[${colors.accent}] text-white`,
-  
-  // Status badges with iOS system colors
-  success: `bg-[${colors.success}] text-white`,
-  warning: `bg-[${colors.warning}] text-white`,
-  error: `bg-[${colors.error}] text-white`,
-  
-  // Ghost badge - transparent with border
-  ghost: `bg-transparent border border-[${colors.border}] text-[${colors.textSecondary}]`,
-};
-
-/**
- * Badge sizes for different contexts
- */
-const badgeSizes = {
-  small: "h-6 px-2 text-xs",  // 24px height
-  medium: "h-8 px-3 text-sm", // 32px height
-};
-
-/**
- * iOS Deluxe Badge/Pill Component
- * 
- * @param {Object} props
- * @param {React.ReactNode} props.children - Badge content
- * @param {string} props.variant - Badge variant (default, primary, success, warning, error, ghost)
- * @param {string} props.size - Badge size (small, medium)
- * @param {boolean} props.pulsing - Enable subtle pulsing animation for active states
- * @param {React.ReactNode} props.icon - Optional icon element
- * @param {string} props.className - Additional CSS classes
- */
-function Badge({ 
-  children, 
-  variant = "default", 
+function Badge({
+  children,
+  variant = "default",
   size = "small",
   pulsing = false,
   icon,
-  className 
+  className
 }) {
+  // Variant styles with inline styles
+  const variantStyles = {
+    default: {
+      backgroundColor: '#F3F4F6',
+      color: '#374151',
+    },
+    primary: {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+    },
+    success: {
+      backgroundColor: '#22C55E',
+      color: '#FFFFFF',
+    },
+    warning: {
+      backgroundColor: '#F59E0B',
+      color: '#FFFFFF',
+    },
+    error: {
+      backgroundColor: '#EF4444',
+      color: '#FFFFFF',
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+      color: '#6B7280',
+      border: '1px solid #E5E7EB',
+    },
+    dark: {
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      color: '#FFFFFF',
+    },
+  };
+
+  const sizeStyles = {
+    small: { height: '24px', padding: '0 8px', fontSize: '12px' },
+    medium: { height: '32px', padding: '0 12px', fontSize: '14px' },
+  };
+
+  const currentVariant = variantStyles[variant] || variantStyles.default;
+  const currentSize = sizeStyles[size] || sizeStyles.small;
+
+  const badgeStyle = {
+    ...currentVariant,
+    ...currentSize,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '500',
+    borderRadius: '9999px',
+    transition: 'all 0.2s ease',
+  };
+
   return (
     <span
-      className={cn(
-        // Base styles - pill shape with centered content
-        "inline-flex items-center justify-center font-medium",
-        
-        // Full rounded corners (pill shape)
-        `rounded-[${borderRadius.full}]`,
-        
-        // Size variants
-        badgeSizes[size],
-        
-        // Color variants
-        badgeVariants[variant],
-        
-        // Optional pulsing animation
-        pulsing && "animate-pulse",
-        
-        // Custom classes
-        className
-      )}
+      className={cn(pulsing && "animate-pulse", className)}
+      style={badgeStyle}
     >
-      {/* Optional icon */}
-      {icon && <span className="mr-1 -ml-0.5">{icon}</span>}
-      
-      {/* Badge content */}
+      {icon && <span style={{ marginRight: '4px', marginLeft: '-2px' }}>{icon}</span>}
       {children}
     </span>
   );

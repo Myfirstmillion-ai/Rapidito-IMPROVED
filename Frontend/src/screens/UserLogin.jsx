@@ -1,56 +1,23 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ArrowLeft, Mail, Lock, LogIn } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import Console from "../utils/console";
-
-// Import design system components
-import { colors, shadows, glassEffect } from "../styles/designSystem";
 import Button from "../components/common/Button";
-import Card from "../components/common/Card";
 import Input from "../components/common/Input";
-import Badge from "../components/common/Badge";
 
 /**
- * UserLogin - iOS Deluxe Floating Island Layout
- * Premium dark mode design with glassmorphism and depth layers
- * Animated background with floating centered auth card
+ * UserLogin - Premium Uber-style Login Screen
+ * Clean, modern design with smooth animations
  */
 function UserLogin() {
   const [responseError, setResponseError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // Check for reduced motion preference
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }, []);
-
-  // Animation variants with iOS spring physics
-  const staggerContainer = {
-    initial: {},
-    animate: {
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : 0.1,
-        delayChildren: prefersReducedMotion ? 0 : 0.2
-      }
-    }
-  };
-
-  const fadeInUp = {
-    initial: prefersReducedMotion ? {} : { opacity: 0, y: 40 },
-    animate: prefersReducedMotion ? {} : { opacity: 1, y: 0 },
-    transition: { type: "spring", damping: 30, stiffness: 300, mass: 0.8 }
-  };
-
-  const scaleIn = {
-    initial: prefersReducedMotion ? {} : { opacity: 0, scale: 0.95 },
-    animate: prefersReducedMotion ? {} : { opacity: 1, scale: 1 },
-    transition: { type: "spring", damping: 30, stiffness: 300, mass: 0.8, delay: 0.1 }
-  };
+  const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
 
   const {
     handleSubmit,
@@ -58,251 +25,369 @@ function UserLogin() {
     formState: { errors },
   } = useForm();
 
-  const navigation = useNavigate();
-
-  const loginUser = async (data) => {
-    if (data.email.trim() !== "" && data.password.trim() !== "") {
-      try {
-        setLoading(true);
-        setResponseError(""); // Clear previous errors
-        
-        const response = await axios.post(
-          `${import.meta.env.VITE_SERVER_URL}/user/login`,
-          data
-        );
-        
-        Console.log(response);
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userData", JSON.stringify({
-          type: "user",
-          data: response.data.user,
-        }));
-        
-        // Add a small delay for a smoother transition
-        setTimeout(() => {
-          navigation("/home");
-        }, 300);
-      } catch (error) {
-        setResponseError(error.response?.data?.message || "Error al iniciar sesión");
-        Console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (responseError) {
-      const timer = setTimeout(() => {
-        setResponseError("");
-      }, 5000);
+      const timer = setTimeout(() => setResponseError(""), 5000);
       return () => clearTimeout(timer);
     }
   }, [responseError]);
 
+  const loginUser = async (data) => {
+    if (!data.email?.trim() || !data.password?.trim()) return;
+
+    try {
+      setLoading(true);
+      setResponseError("");
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/user/login`,
+        data
+      );
+
+      Console.log(response);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          type: "user",
+          data: response.data.user,
+        })
+      );
+
+      setTimeout(() => navigate("/home"), 300);
+    } catch (error) {
+      setResponseError(
+        error.response?.data?.message || "Error al iniciar sesión"
+      );
+      Console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={`min-h-screen bg-[${colors.primary}] flex flex-col overflow-y-auto`}>
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#101010] to-[#080808] opacity-90" />
-      
-      {/* Subtle Mesh Gradient Overlay */}
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 0.7 }}
-        transition={{ duration: 1 }}
-        className="absolute inset-0 bg-[url('/2.webp')] bg-cover bg-center opacity-30 mix-blend-overlay"
-        aria-hidden="true"
-      />
-      
-      {/* Back Button - Floating Glass Pill */}
-      <motion.div
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", damping: 30, stiffness: 300, delay: 0.1 }}
-        className="absolute top-6 left-6 z-20"
+    <div style={styles.container}>
+      {/* Header with back button */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : -20 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        style={styles.header}
       >
-        <Button
-          variant="glass"
-          size="small"
-          icon={<ArrowLeft size={18} />}
-          title="Volver"
-          onClick={() => navigation('/')}
-          fullWidth={false}
-        />
-      </motion.div>
-
-      {/* Content Wrapper - Centered Login Island */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center items-center px-6 py-20">
-        {/* Centered Floating Island Card */}
-        <motion.div
-          variants={scaleIn}
-          initial="initial"
-          animate="animate"
-          className="w-full max-w-md"
+        <button
+          onClick={() => navigate("/")}
+          style={styles.backButton}
+          aria-label="Volver"
         >
-          <Card 
-            variant="floating" 
-            borderRadius="xlarge"
-            className="py-10 px-8"
+          <ArrowLeft size={24} color="#000" />
+        </button>
+      </motion.header>
+
+      {/* Main content */}
+      <div style={styles.content}>
+        {/* Title section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 20 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          style={styles.titleSection}
+        >
+          <h1 style={styles.title}>Bienvenido</h1>
+          <p style={styles.subtitle}>
+            Ingresa tus datos para continuar
+          </p>
+        </motion.div>
+
+        {/* Error message */}
+        {responseError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={styles.errorContainer}
           >
-            {/* Header with Logo */}
-            <div className="flex justify-center mb-8">
-              <motion.div variants={fadeInUp} className="text-center">
-                <h2 className={`text-[28px] font-bold tracking-tight text-[${colors.textPrimary}]`}>Iniciar Sesión</h2>
-                <p className={`mt-2 text-[${colors.textSecondary}]`}>Bienvenido de vuelta</p>
-              </motion.div>
-            </div>
+            <p style={styles.errorText}>{responseError}</p>
+          </motion.div>
+        )}
 
-            {/* Error Message - iOS Style */}
-            {responseError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`mb-6 px-4 py-3 bg-[${colors.error}]/10 border border-[${colors.error}]/20 rounded-[${borderRadius.medium}] text-[${colors.error}] text-sm flex items-center gap-2`}
-                role="alert"
-              >
-                <span className="rounded-full bg-[${colors.error}]/20 p-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                {responseError}
-              </motion.div>
-            )}
+        {/* Login form */}
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 20 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          onSubmit={handleSubmit(loginUser)}
+          style={styles.form}
+        >
+          {/* Email input */}
+          <Input
+            label="Correo electrónico"
+            type="email"
+            name="email"
+            icon={Mail}
+            register={register}
+            error={errors.email && { message: "El email es requerido" }}
+            floatingLabel
+            clearable
+          />
 
-            {/* Google OAuth Button - iOS Glass Style */}
-            <motion.div variants={fadeInUp} className="mb-4">
-              <Button
-                variant="glass"
-                size="large"
-                icon={<img src="/screens/google-logo.png" alt="Google" className="w-5 h-5" />}
-                title="Continuar con Google"
-                onClick={() => window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google?userType=user`}
-                fullWidth
-              />
-            </motion.div>
-
-            {/* Divider with text */}
-            <motion.div variants={fadeInUp} className="flex items-center gap-4 my-6">
-              <div className={`h-px flex-1 bg-[${colors.border}]`}></div>
-              <span className={`text-[${colors.textSecondary}] text-sm`}>o continuar con email</span>
-              <div className={`h-px flex-1 bg-[${colors.border}]`}></div>
-            </motion.div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit(loginUser)} className="space-y-5">
-              {/* Email Input - iOS Floating Label */}
-              <motion.div variants={fadeInUp}>
-                <Input
-                  label="Correo electrónico"
-                  type="email"
-                  name="email"
-                  icon={Mail}
-                  register={register}
-                  error={errors.email && { message: "El email es requerido" }}
-                  floatingLabel
-                  clearable
-                />
-              </motion.div>
-
-              {/* Password Input - iOS Floating Label */}
-              <motion.div variants={fadeInUp}>
-                <Input
-                  label="Contraseña"
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  icon={Lock}
-                  register={register}
-                  error={errors.password && { message: "La contraseña es requerida" }}
-                  floatingLabel
-                  clearable={false}
-                />
-                
-                {/* Show/Hide Password Button */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={`text-[${colors.textSecondary}] hover:text-[${colors.textPrimary}] p-1 rounded-full transition-colors`}
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* Login Button */}
-              <motion.div variants={fadeInUp} className="pt-4">
-                <Button
-                  variant="primary"
-                  size="large"
-                  title={loading ? "Iniciando..." : "Iniciar Sesión"}
-                  icon={loading ? null : <LogIn size={20} />}
-                  loading={loading}
-                  loadingMessage="Iniciando..."
-                  onClick={handleSubmit(loginUser)}
-                  fullWidth
-                />
-              </motion.div>
-              
-              {/* Helper Links */}
-              <motion.div variants={fadeInUp} className="pt-4 flex justify-center">
-                <Link 
-                  to="/forgot-password" 
-                  className={`text-sm text-[${colors.textSecondary}] hover:text-[${colors.accent}] transition-colors`}
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </motion.div>
-            </form>
-
-            {/* Sign Up Link */}
-            <motion.div
-              variants={fadeInUp}
-              className="mt-8 pb-4 text-center"
+          {/* Password input */}
+          <div style={styles.passwordContainer}>
+            <Input
+              label="Contraseña"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              icon={Lock}
+              register={register}
+              error={errors.password && { message: "La contraseña es requerida" }}
+              floatingLabel
+              clearable={false}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.showPasswordButton}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
-              <p className={`text-[${colors.textSecondary}]`}>
-                ¿No tienes cuenta?{" "}
-                <Link 
-                  to="/signup" 
-                  className={`font-semibold text-[${colors.textPrimary}] hover:text-[${colors.accent}] transition-colors`}
-                >
-                  Regístrate
-                </Link>
-              </p>
-            </motion.div>
-          </Card>
+              {showPassword ? (
+                <EyeOff size={20} color="#6B7280" />
+              ) : (
+                <Eye size={20} color="#6B7280" />
+              )}
+            </button>
+          </div>
+
+          {/* Forgot password link */}
+          <div style={styles.forgotPasswordContainer}>
+            <Link to="/user/forgot-password" style={styles.forgotPasswordLink}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
+          {/* Submit button */}
+          <div style={styles.buttonContainer}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="large"
+              title={loading ? "Iniciando sesión..." : "Iniciar sesión"}
+              loading={loading}
+              loadingMessage="Iniciando..."
+              fullWidth
+            />
+          </div>
+        </motion.form>
+
+        {/* Divider */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: mounted ? 1 : 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          style={styles.divider}
+        >
+          <div style={styles.dividerLine} />
+          <span style={styles.dividerText}>o</span>
+          <div style={styles.dividerLine} />
+        </motion.div>
+
+        {/* Google button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 20 }}
+          transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Button
+            variant="secondary"
+            size="large"
+            icon={
+              <img
+                src="/screens/google-logo.png"
+                alt="Google"
+                style={{ width: 20, height: 20 }}
+              />
+            }
+            title="Continuar con Google"
+            onClick={() => {
+              window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google?userType=user`;
+            }}
+            fullWidth
+          />
+        </motion.div>
+
+        {/* Sign up link */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: mounted ? 1 : 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          style={styles.signupContainer}
+        >
+          <p style={styles.signupText}>
+            ¿No tienes cuenta?{" "}
+            <Link to="/signup" style={styles.signupLink}>
+              Regístrate
+            </Link>
+          </p>
         </motion.div>
       </div>
 
-      {/* Footer with Legal Links */}
+      {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
-        className="relative z-10 mt-auto py-6 flex flex-col items-center"
+        animate={{ opacity: mounted ? 1 : 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        style={styles.footer}
       >
-        {/* Legal Links in Pills */}
-        <div className="flex flex-wrap justify-center gap-3">
-          <Badge variant="ghost">
-            <Link to="/privacy" className="px-1">
-              Privacidad
-            </Link>
-          </Badge>
-          <Badge variant="ghost">
-            <Link to="/terms" className="px-1">
-              Términos
-            </Link>
-          </Badge>
-          <Badge variant="ghost">
-            <Link to="/help" className="px-1">
-              Ayuda
-            </Link>
-          </Badge>
+        <div style={styles.footerLinks}>
+          <Link to="/terms" style={styles.footerLink}>Términos</Link>
+          <span style={styles.footerDot}>·</span>
+          <Link to="/privacy" style={styles.footerLink}>Privacidad</Link>
+          <span style={styles.footerDot}>·</span>
+          <Link to="/help" style={styles.footerLink}>Ayuda</Link>
         </div>
       </motion.footer>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  header: {
+    padding: '16px 24px',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  backButton: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    border: 'none',
+    backgroundColor: '#F3F4F6',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  content: {
+    flex: 1,
+    padding: '0 24px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  titleSection: {
+    marginBottom: '32px',
+  },
+  title: {
+    fontSize: '32px',
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: '8px',
+    letterSpacing: '-0.5px',
+  },
+  subtitle: {
+    fontSize: '16px',
+    color: '#6B7280',
+  },
+  errorContainer: {
+    padding: '12px 16px',
+    backgroundColor: '#FEF2F2',
+    borderRadius: '12px',
+    marginBottom: '16px',
+  },
+  errorText: {
+    fontSize: '14px',
+    color: '#DC2626',
+    margin: 0,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  showPasswordButton: {
+    position: 'absolute',
+    right: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    padding: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  forgotPasswordContainer: {
+    textAlign: 'right',
+    marginTop: '8px',
+    marginBottom: '24px',
+  },
+  forgotPasswordLink: {
+    fontSize: '14px',
+    color: '#000000',
+    fontWeight: '500',
+    textDecoration: 'none',
+  },
+  buttonContainer: {
+    marginTop: '8px',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    margin: '24px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    fontSize: '14px',
+    color: '#9CA3AF',
+  },
+  signupContainer: {
+    textAlign: 'center',
+    marginTop: '24px',
+  },
+  signupText: {
+    fontSize: '15px',
+    color: '#6B7280',
+  },
+  signupLink: {
+    color: '#000000',
+    fontWeight: '600',
+    textDecoration: 'none',
+  },
+  footer: {
+    padding: '24px',
+    textAlign: 'center',
+  },
+  footerLinks: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  footerLink: {
+    fontSize: '14px',
+    color: '#6B7280',
+    textDecoration: 'none',
+  },
+  footerDot: {
+    color: '#D1D5DB',
+  },
+};
 
 export default UserLogin;

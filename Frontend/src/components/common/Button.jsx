@@ -1,212 +1,125 @@
 import { Link } from "react-router-dom";
 import Spinner from "../Spinner";
 import { cn } from "../../utils/cn";
-import { colors, borderRadius, shadows, animation } from "../../styles/designSystem";
-
-// iOS Deluxe button variants - Premium with glassmorphism and depth layers
-const buttonVariants = {
-  // Primary filled button - iOS accent blue
-  primary: `
-    bg-[${colors.accent}]
-    text-white
-    shadow-[${shadows.level1}]
-    hover:shadow-[${shadows.level2}]
-    hover:brightness-110
-    hover:-translate-y-[2px]
-  `,
-
-  // Secondary outline button - subtle border with transparent background
-  secondary: `
-    bg-transparent
-    border border-[${colors.border}]
-    text-[${colors.textPrimary}]
-    hover:bg-white/5
-    hover:border-white/20
-    hover:shadow-[${shadows.level1}]
-  `,
-
-  // Ghost button - completely transparent with hover effect
-  ghost: `
-    bg-transparent
-    text-[${colors.textPrimary}]
-    hover:bg-white/5
-  `,
-
-  // Glass button - glassmorphism effect
-  glass: `
-    bg-[${colors.glassBg}]
-    backdrop-filter backdrop-blur-xl backdrop-saturate-180
-    border border-[${colors.border}]
-    text-[${colors.textPrimary}]
-    shadow-[${shadows.level2}]
-    hover:shadow-[${shadows.level3}]
-    hover:-translate-y-[2px]
-  `,
-
-  // Success button - iOS green
-  success: `
-    bg-[${colors.success}]
-    text-white
-    shadow-[${shadows.level1}]
-    hover:shadow-[${shadows.level2}]
-    hover:brightness-110
-    hover:-translate-y-[2px]
-  `,
-
-  // Warning button - iOS orange
-  warning: `
-    bg-[${colors.warning}]
-    text-white
-    shadow-[${shadows.level1}]
-    hover:shadow-[${shadows.level2}]
-    hover:brightness-110
-    hover:-translate-y-[2px]
-  `,
-
-  // Error button - iOS red
-  error: `
-    bg-[${colors.error}]
-    text-white
-    shadow-[${shadows.level1}]
-    hover:shadow-[${shadows.level2}]
-    hover:brightness-110
-    hover:-translate-y-[2px]
-  `,
-};
-
-// iOS Deluxe button sizes
-const buttonSizes = {
-  small: `h-[36px] px-4 text-[15px] font-medium`, // Small: 36px
-  medium: `h-[44px] px-6 text-[17px] font-semibold`, // Medium: 44px (iOS standard)
-  large: `h-[52px] px-8 text-[17px] font-semibold`, // Large: 52px
-};
 
 /**
- * iOS Deluxe Button Component
- * 
+ * Premium Button Component - Uber-style Design
+ *
  * Features:
- * - iOS standard sizes (36px, 44px, 52px heights)
- * - Active state with scale(0.97)
- * - Spring physics animations
- * - Glassmorphism effect option
+ * - Clean, modern design with solid colors
+ * - Smooth transitions and hover effects
  * - Multiple variants and sizes
  * - Loading state with spinner
  * - Support for icons
- * - Ripple effect on click
- * 
- * @param {Object} props
- * @param {string} props.path - Link path (when type="link")
- * @param {string} props.title - Button text
- * @param {React.ReactNode} props.icon - Optional icon element
- * @param {string} props.type - button type or "link"
- * @param {string} props.classes - Additional CSS classes
- * @param {Function} props.fun - onClick handler
- * @param {boolean} props.loading - Loading state
- * @param {string} props.loadingMessage - Loading text
- * @param {boolean} props.disabled - Disabled state
- * @param {string} props.variant - Button variant (primary, secondary, ghost, glass, success, warning, error)
- * @param {string} props.size - Button size (small, medium, large)
- * @param {boolean} props.fullWidth - Full width button (default: true for mobile)
- * @param {boolean} props.iconOnly - Icon-only button with equal width/height
+ * - Touch-friendly feedback
  */
-
-const rippleEffect = {
-  position: 'absolute',
-  borderRadius: '50%',
-  transform: 'scale(0)',
-  backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  animation: 'ripple 600ms linear',
-  '@keyframes ripple': {
-    to: {
-      transform: 'scale(4)',
-      opacity: 0,
-    },
-  },
-};
-
-const useRipple = (event) => {
-  const button = event.currentTarget;
-  const ripple = document.createElement('span');
-  const diameter = Math.max(button.clientWidth, button.clientHeight);
-  const radius = diameter / 2;
-  
-  for (const key in rippleEffect) {
-    if (key !== '@keyframes ripple') {
-      ripple.style[key] = rippleEffect[key];
-    }
-  }
-  
-  ripple.style.width = `${diameter}px`;
-  ripple.style.height = `${diameter}px`;
-  ripple.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
-  ripple.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
-  
-  button.appendChild(ripple);
-  
-  const keyframes = `
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-  `;
-  
-  const styleElement = document.createElement('style');
-  styleElement.innerHTML = keyframes;
-  document.head.appendChild(styleElement);
-  
-  setTimeout(() => {
-    ripple.remove();
-    styleElement.remove();
-  }, 600);
-};
-function Button({ 
-  path, 
-  title, 
-  icon, 
-  type, 
-  classes, 
-  fun, 
-  loading, 
-  loadingMessage, 
+function Button({
+  path,
+  title,
+  icon,
+  type,
+  classes,
+  fun,
+  onClick, // Support both onClick and fun
+  loading,
+  loadingMessage,
   disabled,
   variant = "primary",
   size = "medium",
   fullWidth = true,
   iconOnly = false
 }) {
-  const handleRipple = (event) => {
-    if (!disabled && !loading) {
-      useRipple(event);
-    }
+  // Combine onClick and fun handlers - onClick takes precedence
+  const handleClick = onClick || fun;
+
+  // Size configurations
+  const sizeStyles = {
+    small: { height: '40px', padding: '0 16px', fontSize: '14px' },
+    medium: { height: '48px', padding: '0 24px', fontSize: '16px' },
+    large: { height: '56px', padding: '0 32px', fontSize: '16px' },
+  };
+
+  // Variant configurations with inline styles (fixes Tailwind dynamic class issue)
+  const variantStyles = {
+    primary: {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+      border: 'none',
+    },
+    secondary: {
+      backgroundColor: '#F3F4F6',
+      color: '#111827',
+      border: 'none',
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+      color: '#FFFFFF',
+      border: '1px solid rgba(255,255,255,0.2)',
+    },
+    glass: {
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      color: '#FFFFFF',
+      border: '1px solid rgba(255,255,255,0.2)',
+      backdropFilter: 'blur(20px)',
+    },
+    success: {
+      backgroundColor: '#22C55E',
+      color: '#FFFFFF',
+      border: 'none',
+    },
+    warning: {
+      backgroundColor: '#F59E0B',
+      color: '#FFFFFF',
+      border: 'none',
+    },
+    error: {
+      backgroundColor: '#EF4444',
+      color: '#FFFFFF',
+      border: 'none',
+    },
+    outline: {
+      backgroundColor: 'transparent',
+      color: '#000000',
+      border: '2px solid #000000',
+    },
+  };
+
+  const currentSize = sizeStyles[size] || sizeStyles.medium;
+  const currentVariant = variantStyles[variant] || variantStyles.primary;
+
+  const baseStyle = {
+    ...currentVariant,
+    height: currentSize.height,
+    padding: iconOnly ? '0' : currentSize.padding,
+    fontSize: currentSize.fontSize,
+    fontWeight: '600',
+    borderRadius: '12px',
+    width: fullWidth ? '100%' : 'auto',
+    aspectRatio: iconOnly ? '1' : 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    cursor: disabled || loading ? 'not-allowed' : 'pointer',
+    opacity: disabled || loading ? 0.5 : 1,
+    transition: 'all 0.2s ease',
+    outline: 'none',
+    position: 'relative',
+    overflow: 'hidden',
   };
 
   const baseClasses = cn(
-    // Base layout and typography
-    "flex justify-center items-center gap-2 relative overflow-hidden",
-    // Border radius based on design system
-    `rounded-[${borderRadius.small}]`,
-    // Premium smooth transitions with spring physics
-    `transition-all duration-[${animation.duration.normal}] ${animation.easeDefault}`,
-    // Disabled state
-    "disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none",
-    // Tactile press feedback
-    "active:scale-[0.97] active:brightness-95",
-    // Accessible focus state
-    `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${colors.accent}]/30 focus-visible:ring-offset-1`,
-    // Conditional classes
-    fullWidth && "w-full",
-    iconOnly && "aspect-square p-0 justify-center",
-    buttonSizes[size],
-    buttonVariants[variant],
-    loading && "cursor-not-allowed opacity-80 pointer-events-none",
+    "hover:opacity-90 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20",
     classes
   );
 
   if (type === "link") {
     return (
-      <Link to={path} className={baseClasses} onClick={handleRipple}>
+      <Link
+        to={path}
+        className={baseClasses}
+        style={baseStyle}
+      >
         {icon && <span className="flex-shrink-0">{icon}</span>}
         {!iconOnly && title}
       </Link>
@@ -217,15 +130,17 @@ function Button({
     <button
       type={type || "button"}
       className={baseClasses}
+      style={baseStyle}
       onClick={(e) => {
-        handleRipple(e);
-        if (fun) fun(e);
+        if (!disabled && !loading && handleClick) {
+          handleClick(e);
+        }
       }}
       disabled={loading || disabled}
     >
       {loading ? (
         <span className="flex gap-2 items-center">
-          <Spinner color={variant === "secondary" || variant === "ghost" ? colors.textPrimary : "white"} />
+          <Spinner color={variant === "secondary" ? "#111827" : "white"} />
           {!iconOnly && (loadingMessage || "Cargando...")}
         </span>
       ) : (
