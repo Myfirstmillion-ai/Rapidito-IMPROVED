@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCaptain } from "../contexts/CaptainContext";
 import VerifyEmail from "../components/VerifyEmail";
@@ -13,31 +13,50 @@ function CaptainProtectedWrapper({ children }) {
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(null);
   const [isProfileComplete, setIsProfileComplete] = useState(null);
+  // CRITICAL-FIX: Track redirect needs to avoid navigate() during render
+  const [shouldRedirect, setShouldRedirect] = useState(null);
+  const mountedRef = useRef(true);
+
+  // CRITICAL-FIX: Handle redirects in useEffect, not during render
+  useEffect(() => {
+    if (shouldRedirect) {
+      navigate(shouldRedirect, { replace: true });
+    }
+  }, [shouldRedirect, navigate]);
 
   useEffect(() => {
+    mountedRef.current = true;
+
     if (!token) {
-      navigate("/captain/login");
+      setShouldRedirect("/captain/login");
+      setLoading(false);
       return;
     }
 
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      console.error("Captain profile fetch timeout - redirecting to login");
-      localStorage.removeItem("token");
-      localStorage.removeItem("userData");
-      navigate("/captain/login");
+      if (mountedRef.current) {
+        console.error("Captain profile fetch timeout - redirecting to login");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
+        setShouldRedirect("/captain/login");
+        setLoading(false);
+      }
     }, 10000); // 10 second timeout
 
+    setLoading(true);
     axios
       .get(`${import.meta.env.VITE_SERVER_URL}/captain/profile`, {
         headers: {
           token: token,
         },
-        withCredentials: true, // CRITICAL-006: Send cookies with request
-        timeout: 8000, // 8 second request timeout
+        withCredentials: true,
+        timeout: 8000,
       })
       .then((response) => {
-        clearTimeout(timeoutId); // Clear timeout on success
+        clearTimeout(timeoutId);
+        if (!mountedRef.current) return;
+
         if (response.status === 200) {
           const captainData = response.data.captain;
           setCaptain(captainData);
@@ -46,34 +65,42 @@ function CaptainProtectedWrapper({ children }) {
             JSON.stringify({ type: "captain", data: captainData })
           );
           setIsVerified(captainData.emailVerified);
-          setIsProfileComplete(captainData.isProfileComplete !== false);
+
+          // CRITICAL-FIX: Check profile completion and set redirect state
+          if (captainData.isProfileComplete === false) {
+            setShouldRedirect("/complete-profile");
+          } else {
+            setIsProfileComplete(true);
+          }
         }
       })
       .catch((err) => {
-        clearTimeout(timeoutId); // Clear timeout on error
+        clearTimeout(timeoutId);
+        if (!mountedRef.current) return;
+
         console.error("Error fetching captain profile:", err.message || err);
         localStorage.removeItem("token");
         localStorage.removeItem("userData");
-        navigate("/captain/login");
+        setShouldRedirect("/captain/login");
       })
       .finally(() => {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       });
 
     // Cleanup
-    return () => clearTimeout(timeoutId);
-  }, [token, navigate, setCaptain]);
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(timeoutId);
+    };
+  }, [token, setCaptain]);
 
-  if (loading) return <Loading />;
+  // Show loading while redirecting or fetching
+  if (loading || shouldRedirect) return <Loading />;
 
   if (isVerified === false) {
     return <VerifyEmail user={captain} role={"captain"} />;
-  }
-
-  // Redirect to complete profile if OAuth captain hasn't completed profile
-  if (isProfileComplete === false) {
-    navigate("/complete-profile");
-    return <Loading />;
   }
 
   return <>{children}</>;

@@ -49,8 +49,14 @@ function CaptainContext({ children }) {
 }
 
 export const useCaptain = () => {
-  const { captain, setCaptain } = useContext(captainDataContext);
-  return { captain, setCaptain };
+  const context = useContext(captainDataContext);
+
+  // CRITICAL-FIX: Null guard to prevent crash if hook used outside provider
+  if (!context) {
+    throw new Error("useCaptain must be used within a CaptainContext provider");
+  }
+
+  return { captain: context.captain, setCaptain: context.setCaptain };
 };
 
 export default CaptainContext;

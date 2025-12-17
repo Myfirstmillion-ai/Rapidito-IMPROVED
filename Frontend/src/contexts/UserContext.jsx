@@ -41,8 +41,14 @@ const UserContext = ({ children }) => {
 };
 
 export const useUser = () => {
-  const { user, setUser } = useContext(userDataContext);
-  return { user, setUser };
+  const context = useContext(userDataContext);
+
+  // CRITICAL-FIX: Null guard to prevent crash if hook used outside provider
+  if (!context) {
+    throw new Error("useUser must be used within a UserContext provider");
+  }
+
+  return { user: context.user, setUser: context.setUser };
 };
 
 export default UserContext;

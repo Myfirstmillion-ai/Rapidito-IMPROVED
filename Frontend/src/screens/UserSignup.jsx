@@ -272,16 +272,17 @@ function UserSignup() {
               </motion.div>
 
               {/* Password Input - iOS Floating Label */}
+              {/* CRITICAL-FIX: Pass register function, not result of calling it */}
               <motion.div variants={fadeInUp} className="relative">
                 <Input
                   label="Contraseña"
                   type={showPassword ? "text" : "password"}
                   name="password"
                   icon={Lock}
-                  register={register("password", { required: true, minLength: 6 })}
-                  error={errors.password && { 
-                    message: errors.password.type === "minLength" 
-                      ? "La contraseña debe tener al menos 6 caracteres" 
+                  register={register}
+                  error={errors.password && {
+                    message: errors.password.type === "minLength"
+                      ? "La contraseña debe tener al menos 6 caracteres"
                       : "La contraseña es requerida"
                   }}
                   floatingLabel

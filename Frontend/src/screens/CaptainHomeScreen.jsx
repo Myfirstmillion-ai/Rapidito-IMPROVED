@@ -132,8 +132,10 @@ function CaptainHomeScreen() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [currentRideStatus, setCurrentRideStatus] = useState("pending");
   const locationUpdateInterval = useRef(null);
-  
+
   const activeRideToastsRef = useRef(new Map());
+  // CRITICAL-FIX: Ref to track latest ride data to avoid stale closures in callbacks
+  const newRideRef = useRef(newRide);
 
   const [showCaptainDetailsPanel, setShowCaptainDetailsPanel] = useState(true);
   const [showNewRidePanel, setShowNewRidePanel] = useState(
@@ -211,13 +213,22 @@ function CaptainHomeScreen() {
     }
   };
 
-  const acceptRide = async () => {
+  // CRITICAL-FIX: Keep ref in sync with state
+  useEffect(() => {
+    newRideRef.current = newRide;
+  }, [newRide]);
+
+  // CRITICAL-FIX: Accept optional rideId to avoid stale closure
+  const acceptRide = async (rideIdOverride) => {
+    // Use override if provided, otherwise use ref (always has latest value)
+    const rideId = rideIdOverride || newRideRef.current._id;
+
     try {
-      if (newRide._id !== "") {
+      if (rideId && rideId !== "" && rideId !== "123456789012345678901234") {
         setLoading(true);
         const response = await axios.post(
           `${import.meta.env.VITE_SERVER_URL}/ride/confirm`,
-          { rideId: newRide._id },
+          { rideId: rideId },
           {
             headers: {
               token: token,
@@ -227,15 +238,17 @@ function CaptainHomeScreen() {
         setLoading(false);
         setShowBtn("otp");
         setCurrentRideStatus("accepted");
-        
+
         vibrate([200, 100, 200]);
         playSound(NOTIFICATION_SOUNDS.rideAccepted);
-        
+
         setMapCenter({
           lat: riderLocation.lat,
           lng: riderLocation.lng
         });
         Console.log(response);
+      } else {
+        Console.error("acceptRide called with invalid rideId:", rideId);
       }
     } catch (error) {
       setLoading(false);
@@ -489,32 +502,34 @@ function CaptainHomeScreen() {
       
       const handleNewRide = (data) => {
         Console.log("Nuevo viaje disponible:", data);
-        
+
         if (data.isLateJoinOffer) {
           Console.log(`[LateJoiner] Received pending ride with ${data.timeRemaining}s remaining`);
         }
-        
+
         vibrate([500, 200, 500, 200, 500]);
         playSound(NOTIFICATION_SOUNDS.newRide);
-        
+
         setShowBtn("accept");
         setNewRide(data);
         setShowNewRidePanel(true);
-        
+
+        // CRITICAL-FIX: Pass rideId directly to avoid stale closure issue
+        const rideId = data._id;
         const toastId = showRideRequestToast(
           data,
           () => {
-            acceptRide();
-            activeRideToastsRef.current.delete(data._id);
+            acceptRide(rideId); // Pass rideId directly
+            activeRideToastsRef.current.delete(rideId);
           },
           () => {
             Console.log("Viaje rechazado por el conductor");
-            activeRideToastsRef.current.delete(data._id);
+            activeRideToastsRef.current.delete(rideId);
           },
           data.timeRemaining
         );
-        
-        activeRideToastsRef.current.set(data._id, toastId);
+
+        activeRideToastsRef.current.set(rideId, toastId);
       };
 
       const handleRideCancelled = (data) => {

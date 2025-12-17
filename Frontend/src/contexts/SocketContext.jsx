@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 
 export const SocketDataContext = createContext();
@@ -12,6 +12,8 @@ function SocketContext({ children }) {
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
   const [activeRide, setActiveRide] = useState(null);
   const [socket, setSocket] = useState(null);
+  // CRITICAL-FIX: Track token changes to reinitialize socket
+  const [currentToken, setCurrentToken] = useState(() => localStorage.getItem("token"));
 
   // Load persisted ride data
   useEffect(() => {
@@ -22,19 +24,48 @@ function SocketContext({ children }) {
     }
   }, []);
 
-  // Initialize socket only when token is available
+  // CRITICAL-FIX: Listen for storage changes (login/logout in other tabs or same tab)
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    
+    const handleStorageChange = (e) => {
+      if (e.key === "token") {
+        setCurrentToken(e.newValue);
+      }
+    };
+
+    // Also poll for token changes (for same-tab updates)
+    const tokenCheckInterval = setInterval(() => {
+      const token = localStorage.getItem("token");
+      if (token !== currentToken) {
+        setCurrentToken(token);
+      }
+    }, 1000);
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(tokenCheckInterval);
+    };
+  }, [currentToken]);
+
+  // Initialize socket when token changes
+  useEffect(() => {
+    // Disconnect existing socket if token changed
+    if (socket) {
+      Console.log("Token changed - disconnecting existing socket");
+      socket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
+    }
+
     // Only create socket if we have a token
-    if (!token) {
+    if (!currentToken) {
       Console.log("No token found - socket not initialized");
       return;
     }
 
     // Create socket instance with authentication
     const socketInstance = io(`${import.meta.env.VITE_SERVER_URL}`, {
-      auth: { token },
+      auth: { token: currentToken },
       transports: ['websocket', 'polling'],
       withCredentials: true,
       reconnection: true,
@@ -42,16 +73,16 @@ function SocketContext({ children }) {
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 10,
     });
-    
+
     Console.log("Socket.io instance created with authentication");
     setSocket(socketInstance);
 
-    // Cleanup on unmount
+    // Cleanup on unmount or token change
     return () => {
       Console.log("Disconnecting socket");
       socketInstance.disconnect();
     };
-  }, []); // Only run once on mount
+  }, [currentToken]); // CRITICAL-FIX: Re-run when token changes
 
   // Socket event listeners
   useEffect(() => {
@@ -123,35 +154,38 @@ function SocketContext({ children }) {
 
   /**
    * Join a ride room and update persistence
+   * CRITICAL-FIX: Use useCallback to prevent stale closures
    */
-  const joinRideRoom = (rideId, rideData, userType) => {
+  const joinRideRoom = useCallback((rideId, rideData, userType) => {
     if (!rideId || !socket) return;
-    
+
     socket.emit("join-ride", { rideId, userType });
     setActiveRide(rideData);
     persistenceManager.ride.saveRideState(rideData);
-  };
+  }, [socket]);
 
   /**
    * Leave a ride room and clear persistence
+   * CRITICAL-FIX: Use useCallback to prevent stale closures
    */
-  const leaveRideRoom = (rideId) => {
+  const leaveRideRoom = useCallback((rideId) => {
     if (!rideId || !socket) return;
-    
+
     socket.emit("leave-ride", { rideId });
     setActiveRide(null);
     persistenceManager.ride.clearRideState();
-  };
+  }, [socket]);
 
   // Memoize context value
-  const value = useMemo(() => ({ 
+  // CRITICAL-FIX: Include callback functions in dependencies
+  const value = useMemo(() => ({
     socket,
     isConnected,
     reconnectAttempt,
     activeRide,
     joinRideRoom,
     leaveRideRoom
-  }), [socket, isConnected, reconnectAttempt, activeRide]);
+  }), [socket, isConnected, reconnectAttempt, activeRide, joinRideRoom, leaveRideRoom]);
 
   return (
     <SocketDataContext.Provider value={value}>
